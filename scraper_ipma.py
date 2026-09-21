@@ -80,7 +80,7 @@ def capturar_mapas_PIR():
             print(f"   A transferir {nome_ficheiro} ({data_alvo})...")
             
             # Navega direto para a imagem
-            response = page.goto(url_wms)
+            response = page.goto(url_wms, timeout=120000, wait_until="commit")
             
             # Guarda o corpo do link (a imagem crua) num ficheiro
             if response and response.status == 200:
