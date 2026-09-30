@@ -1,0 +1,34 @@
+name: Temporary APK bridge
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/tmp-apk-bridge.yml
+
+permissions:
+  contents: write
+
+jobs:
+  bridge:
+    runs-on: ubuntu-latest
+    env:
+      APK_URL: "https://release-assets.githubusercontent.com/github-production-release-asset/1331464667/54e01e91-de93-4a3d-a0cd-c77552274ffa?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-09-30T21%3A04%3A56Z&rscd=attachment%3B+filename%3DMinhaAgenda365-v1.1.28.apk&rsct=application%2Fvnd.android.package-archive&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-09-30T20%3A04%3A39Z&ske=2026-09-30T21%3A04%3A56Z&sks=b&skv=2018-11-09&sig=KEBP8WvLML1VSm4t4RZLO75d4hgC2d1nilqlPd2e6fI%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc5MDgwMDk3NywibmJmIjoxNzkwNzk5MTc3LCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.MiXs2whbXNFEgtWhCKTywTidaFS4D-m3cjPftBgFtXc&response-content-disposition=attachment%3B%20filename%3DMinhaAgenda365-v1.1.28.apk&response-content-type=application%2Fvnd.android.package-archive"
+      TAG: "tmp-apk-bridge-1-1-28-7f3c9a"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch exact signed APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL "$APK_URL" -o MinhaAgenda365-v1.1.28.apk
+          echo "e2446ac041594003d616cc335fd80dc4b81d536208a929aadc7714f51b6a86a2  MinhaAgenda365-v1.1.28.apk" | sha256sum -c -
+      - name: Publish temporary release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release delete "$TAG" --cleanup-tag --yes >/dev/null 2>&1 || true
+          gh release create "$TAG" MinhaAgenda365-v1.1.28.apk --target "$GITHUB_SHA" --title "Temporary APK bridge" --notes "Temporary handoff."
